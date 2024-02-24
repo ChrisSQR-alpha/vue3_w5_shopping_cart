@@ -3,13 +3,13 @@ const { createApp } = Vue;
 // 從 VeeValidate 取出需要的方法和元件，這樣 js 才會認得這些語法
 // defineRules 用來定義規則
 // configure 用來設定訊息產生的語系還有驗證觸發的時機
-const {defineRule, configure, Form, Field, ErrorMessage} = VeeValidate;
+const { defineRule, configure, Form, Field, ErrorMessage } = VeeValidate;
 // 從 VeeVlidateRules 取出規則，這樣才可以使用這些 attributes
-const {required, email, max, min} = VeeValidateRules;
+const { required, email, max, min } = VeeValidateRules;
 // 從 VeeValidateI18n 取出讀取外部資源的方法 
 // loadLocaleFromURL，從URL載入 locale (=語言環境)，他可以取得繁體中文的JSON物件
 // localize 可以指定訊息產生時要吃哪一種語系包
-const {loadLocaleFromURL, localize} = VeeValidateI18n;
+const { loadLocaleFromURL, localize } = VeeValidateI18n;
 
 // 定義規則之後就可以使用標籤
 defineRule('required', required);
@@ -31,11 +31,18 @@ let productDetailModal = null;
 const app = createApp({
     data() {
         return {
+            // 控制 sping icon 的開關
+            // loadingItem 要放入的是產品的 id
+            loadingStatus: {
+                loadingItem: '',
+                addingItem:'',
+                deleteCartItem:'',
+            },
             text: '測試文字',
             apiUrl: 'https://vue3-course-api.hexschool.io',
             apiPath: 'chrissqr',
             products: [],
-            product:{},
+            product: {},
             cart: {},
             qtyToAdd: 1,
             formInfo: {
@@ -44,7 +51,7 @@ const app = createApp({
                     email: '',
                     tel: '',
                     address: '',
-                  },
+                },
                 message: '',
             },
         }
@@ -60,12 +67,14 @@ const app = createApp({
                     alert(error.response.data.message);
                 });
         },
-        getProduct(id){
+        getProduct(id) {
             const url = `${this.apiUrl}/v2/api/${this.apiPath}/product/${id}`;
+            this.loadingStatus.loadingItem = id;
             axios.get(url)
                 .then((response) => {
+                    this.loadingStatus.loadingItem = '';
                     //console.log(response.data.product);
-                    this.product=response.data.product;
+                    this.product = response.data.product;
                     console.log(this.product);
                     // productDetailModal 在app mounted 的時候被實例化
                     productDetailModal.show();
@@ -94,12 +103,16 @@ const app = createApp({
                     qty,
                 },
             };
+            // 切換 loading 狀態
+            this.loadingStatus.addingItem = id;
 
             // 關掉 modal
             productDetailModal.hide();
 
             axios.post(url, cart)
                 .then((response) => {
+                    //切換 loading 狀態
+                    this.loadingStatus.addingItem = '';
                     console.log(response.data);
                     this.getCart();
                     this.qtyToAdd = 1;
@@ -110,8 +123,10 @@ const app = createApp({
         },
         deleteCartItem(id) {
             const url = `${this.apiUrl}/v2/api/${this.apiPath}/cart/${id}`;
+            this.loadingStatus.deleteCartItem = id;
             axios.delete(url)
                 .then((response) => {
+                    this.loadingStatus.deleteCartItem = '';
                     console.log(response.data.message);
                     this.getCart();
                 })
@@ -156,25 +171,25 @@ const app = createApp({
                     console.log(error.response.data.message);
                 });
         },
-        cleanForm(){
+        cleanForm() {
             this.formInfo = {
                 user: {
                     name: '',
                     email: '',
                     tel: '',
                     address: '',
-                  },
+                },
                 message: '',
             }
         },
-        submitOrder(){
+        submitOrder() {
             const url = `${this.apiUrl}/v2/api/${this.apiPath}/order`;
             const data = {
                 data: this.formInfo,
             };
 
             axios.post(url, data)
-                 .then((response) => {
+                .then((response) => {
                     alert(response.data.message);
                     // 透過 $refs 找到 ref="form"的表單，清空他
                     // textarea 不為所動，WHY??
@@ -182,12 +197,12 @@ const app = createApp({
                     this.cleanForm();
                     // 遠端的購物車已經空了，再取得一次，讓畫面也顯示空的購物車
                     this.getCart();
-                 })
-                 .catch((error) => {
+                })
+                .catch((error) => {
                     console.log(error.response.data.message);
-                 })
+                })
         }
-        
+
     },
     mounted() {
         this.getProducts();

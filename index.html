@@ -99,13 +99,24 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <button type="button" class="btn btn-outline-secondary"
-                                        @click="getProduct(item.id)">
-                                        <i class="fas fa-spinner fa-pulse"></i>
+                                    <!-- 讀取效果機制 -->
+                                    <!-- 判斷關鍵：loadingItem 的值是否為該產品的 id -->
+                                    <!-- 該產品的 is_enabled 值是否為 true -->
+                                    <!-- 上述任何一個條件成立，則移除 disabled attribute -->
+                                    <button type="button" class="btn btn-outline-secondary" @click="getProduct(item.id)"
+                                        :disabled="loadingStatus.loadingItem === item.id || !item.is_enabled">
+                                        <!-- fas fa-spinner fa-pulse 是 fontawsome 提供的動態  icon -->
+                                        <!-- 如果 loadingItem 的值是和該產品的 id 相同 -->
+                                        <!-- 就顯示動態 icon -->
+                                        <!-- 動態 icon 顯示多久，由 axios 時間決定 -->
+                                        <i class="fas fa-spinner fa-pulse"
+                                            v-if="loadingStatus.loadingItem === item.id"></i>
                                         查看更多
                                     </button>
-                                    <button type="button" class="btn btn-outline-danger" @click="addToCart(item.id)">
-                                        <i class="fas fa-spinner fa-pulse"></i>
+                                    <button type="button" class="btn btn-outline-danger" @click="addToCart(item.id)"
+                                            :disabled="loadingStatus.addingItem === item.id || !item.is_enabled">
+                                        <i class="fas fa-spinner fa-pulse"
+                                           v-if="loadingStatus.addingItem === item.id"></i>
                                         加到購物車
                                     </button>
                                 </div>
@@ -116,7 +127,8 @@
                 <!-- 產品清單 productList 結束 -->
                 <!-- 購物車列表 cartList 開始 -->
                 <div class="text-end">
-                    <button class="btn btn-outline-danger" type="button" @click="deleteAllCarts()">清空購物車</button>
+                    <button class="btn btn-outline-danger" type="button" @click="deleteAllCarts()"
+                            :disabled="cart.total === 0">清空購物車</button>
                 </div>
                 <table class="table align-middle">
                     <thead>
@@ -133,7 +145,8 @@
                                 <td>
                                     <button type="button" class="btn btn-outline-danger btn-sm"
                                         @click="deleteCartItem(item.id)">
-                                        <i class="fas fa-spinner fa-pulse"></i>
+                                        <i class="fas fa-spinner fa-pulse"
+                                         v-if="loadingStatus.deleteCartItem === item.id"></i>
                                         x
                                     </button>
                                 </td>
@@ -214,11 +227,12 @@
                         <div class="mb-3">
                             <label for="message" class="form-label">留言</label>
                             <textarea ref="message" id="message" class="form-control" cols="30" rows="10"
-                            v-model="formInfo.message"></textarea>
+                                v-model="formInfo.message"></textarea>
                         </div>
                         <div class="text-end">
                             <!-- type="submit 會有送出行為" -->
-                            <button type="submit" class="btn btn-danger">送出訂單</button>
+                            <button type="submit" class="btn btn-danger"
+                                    :disabled="cart.total === 0">送出訂單</button>
                         </div>
                     </v-form>
                 </div>
