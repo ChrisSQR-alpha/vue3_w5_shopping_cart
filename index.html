@@ -14,64 +14,10 @@
 
 <body>
     <div id="app">
-        {{ text }}
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-            Launch static backdrop modal
-        </button>
         <div class="container">
             <div class="mt-4">
                 <!-- 產品Modal 開始 -->
-                <div ref="productDetailModal" class="modal fade" id="productDetailModal" data-bs-backdrop="static"
-                    data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBacdropLabel" aria-hidden="true">
-                    <!-- 使用 modal-dialog-centered modal-xl 改位置還有尺寸-->
-                    <div class="modal-dialog modal-dialog-centered modal-xl">
-                        <div class="modal-content">
-                            <div class="modal-header bg-dark">
-                                <h5 class="modal-title fs-5 text-bg-dark" id="staticBackdropLabel">
-                                    <!-- 產品標題 -->
-                                    {{ product.title }}
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <!-- 產品主圖 -->
-                                        <img class="img-fluid" :src="product.imagesUrl">
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <span class="badge rounded-pill text-light bg-primary">
-                                            <!-- 產品分類 -->
-                                            {{ product.category }}
-                                        </span>
-                                        <p>產品描述：{{ product.description }}</p>
-                                        <p>產品內容：{{ product.content }}</p>
-                                        <div class="h5" v-if="!product.price">
-                                            {{ product.origin_price }}
-                                        </div>
-                                        <del class="h6" v-if="product.price">
-                                            原價 {{ product.origin_price }}
-                                        </del>
-                                        <div class="h5" v-if="product.price">
-                                            現在只要 {{ product.price }}
-                                        </div>
-                                        <div class="row">
-                                            <div class="input-group">
-                                                <input type="number" class="form-control" v-model.number="qtyToAdd"
-                                                    min="1">
-                                                <button type="button" class="btn btn-primary"
-                                                    @click="addToCart(product.id, qtyToAdd)">
-                                                    加入購物車
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <product-detail-modal ref="productDetailModal" :product="product" @add-to-cart="addToCart"></product-detail-modal>
                 <!-- 產品Modal 結束 -->
                 <!-- 產品清單 productList 開始 -->
                 <table class="table align-middle">
@@ -114,9 +60,9 @@
                                         查看更多
                                     </button>
                                     <button type="button" class="btn btn-outline-danger" @click="addToCart(item.id)"
-                                            :disabled="loadingStatus.addingItem === item.id || !item.is_enabled">
+                                        :disabled="loadingStatus.addingItem === item.id || !item.is_enabled">
                                         <i class="fas fa-spinner fa-pulse"
-                                           v-if="loadingStatus.addingItem === item.id"></i>
+                                            v-if="loadingStatus.addingItem === item.id"></i>
                                         加到購物車
                                     </button>
                                 </div>
@@ -128,7 +74,7 @@
                 <!-- 購物車列表 cartList 開始 -->
                 <div class="text-end">
                     <button class="btn btn-outline-danger" type="button" @click="deleteAllCarts()"
-                            :disabled="cart.total === 0">清空購物車</button>
+                        :disabled="cart.total === 0">清空購物車</button>
                 </div>
                 <table class="table align-middle">
                     <thead>
@@ -146,7 +92,7 @@
                                     <button type="button" class="btn btn-outline-danger btn-sm"
                                         @click="deleteCartItem(item.id)">
                                         <i class="fas fa-spinner fa-pulse"
-                                         v-if="loadingStatus.deleteCartItem === item.id"></i>
+                                            v-if="loadingStatus.deleteCartItem === item.id"></i>
                                         x
                                     </button>
                                 </td>
@@ -231,8 +177,7 @@
                         </div>
                         <div class="text-end">
                             <!-- type="submit 會有送出行為" -->
-                            <button type="submit" class="btn btn-danger"
-                                    :disabled="cart.total === 0">送出訂單</button>
+                            <button type="submit" class="btn btn-danger" :disabled="cart.total === 0">送出訂單</button>
                         </div>
                     </v-form>
                 </div>
@@ -240,6 +185,59 @@
             </div>
         </div>
     </div>
+    <script type="text/x-template" id="productDetailModal">
+        <div class="modal fade" id="productModal"  tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" ref="modal">
+                    <!-- 使用 modal-dialog-centered modal-xl 改位置還有尺寸-->
+                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                        <div class="modal-content border-0">
+                            <div class="modal-header bg-dark">
+                                <h5 class="modal-title fs-5 text-bg-dark" id="exampleModalLabel">
+                                    <!-- 產品標題 -->
+                                    {{ product.title }}
+                                </h5>
+                                <!-- data-bs-dismiss="modal" -->
+                                <button type="button" class="btn-close" 
+                                    aria-label="Close" @click="closeModal()"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <!-- 產品主圖 -->
+                                        <img class="img-fluid" :src="product.imagesUrl">
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <span class="badge rounded-pill text-light bg-primary">
+                                            <!-- 產品分類 -->
+                                            {{ product.category }}
+                                        </span>
+                                        <p>產品描述：{{ product.description }}</p>
+                                        <p>產品內容：{{ product.content }}</p>
+                                        <div class="h5" v-if="!product.price">
+                                            {{ product.origin_price }}
+                                        </div>
+                                        <del class="h6" v-if="product.price">
+                                            原價 {{ product.origin_price }}
+                                        </del>
+                                        <div class="h5" v-if="product.price">
+                                            現在只要 {{ product.price }}
+                                        </div>
+                                        <div class="row">
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" v-model.number="qtyToAdd"
+                                                    min="1">
+                                                <button type="button" class="btn btn-primary"
+                                                    @click="$emit('add-to-cart', product.id, qtyToAdd)">
+                                                    加入購物車
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    </script>
 
 
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>

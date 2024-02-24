@@ -1,3 +1,5 @@
+import ProductDetailModal from "./components/ProductDetailModal.js";
+
 const { createApp } = Vue;
 
 // 從 VeeValidate 取出需要的方法和元件，這樣 js 才會認得這些語法
@@ -26,7 +28,7 @@ configure({
     validateOnBlur: true,
 });
 
-let productDetailModal = null;
+// let productDetailModal = null;
 
 const app = createApp({
     data() {
@@ -38,13 +40,12 @@ const app = createApp({
                 addingItem:'',
                 deleteCartItem:'',
             },
-            text: '測試文字',
             apiUrl: 'https://vue3-course-api.hexschool.io',
             apiPath: 'chrissqr',
             products: [],
             product: {},
             cart: {},
-            qtyToAdd: 1,
+            // qtyToAdd: 1,
             formInfo: {
                 user: {
                     name: '',
@@ -55,6 +56,13 @@ const app = createApp({
                 message: '',
             },
         }
+    },
+    // 區域註冊
+    components:{
+        VForm: Form,
+        VField: Field,
+        ErrorMessage: ErrorMessage,
+        ProductDetailModal,
     },
     methods: {
         getProducts() {
@@ -73,11 +81,10 @@ const app = createApp({
             axios.get(url)
                 .then((response) => {
                     this.loadingStatus.loadingItem = '';
-                    //console.log(response.data.product);
                     this.product = response.data.product;
-                    console.log(this.product);
                     // productDetailModal 在app mounted 的時候被實例化
-                    productDetailModal.show();
+                    // productDetailModal.show();
+                    this.$refs.productDetailModal.openModal();
                 })
                 .catch((error) => {
                     alert(error.response);
@@ -88,13 +95,12 @@ const app = createApp({
             axios.get(url)
                 .then((response) => {
                     this.cart = response.data.data;
-                    console.log(response.data.data);
                 })
                 .catch((error) => {
-                    console.log(error.response.data.message);
+                    alert(error.response.data.message);
                 });
         },
-        addToCart(id, qty = 1) {
+        addToCart(id, qty=1) {
             const url = `${this.apiUrl}/v2/api/${this.apiPath}/cart`;
             //需要送物件出去，按照 api 的資料結構組裝
             const cart = {
@@ -107,18 +113,19 @@ const app = createApp({
             this.loadingStatus.addingItem = id;
 
             // 關掉 modal
-            productDetailModal.hide();
+            // productDetailModal.hide();
+            this.$refs.productDetailModal.closeModal();
 
             axios.post(url, cart)
                 .then((response) => {
                     //切換 loading 狀態
                     this.loadingStatus.addingItem = '';
-                    console.log(response.data);
+                    alert(response.data.message);
                     this.getCart();
                     this.qtyToAdd = 1;
                 })
                 .catch((error) => {
-                    console.log(error.response.data.message);
+                    alert(error.response.data.message);
                 });
         },
         deleteCartItem(id) {
@@ -127,22 +134,22 @@ const app = createApp({
             axios.delete(url)
                 .then((response) => {
                     this.loadingStatus.deleteCartItem = '';
-                    console.log(response.data.message);
+                    alert(response.data.message);
                     this.getCart();
                 })
                 .catch((error) => {
-                    console.log(error.response.data.message);
+                    alert(error.response.data.message);
                 })
         },
         deleteAllCarts() {
             const url = `${this.apiUrl}/v2/api/${this.apiPath}/carts`;
             axios.delete(url)
                 .then((response) => {
-                    console.log(response.data.message);
+                    alert(response.data.message);
                     this.getCart();
                 })
                 .catch((error) => {
-                    console.log(error.response.data.message);
+                    alert(error.response.data.message);
                 })
         },
         updateItemAmount(itemInCarts) {
@@ -164,13 +171,13 @@ const app = createApp({
             };
             axios.put(url, cart)
                 .then((response) => {
-                    console.log(response.data);
                     this.getCart();
                 })
                 .catch((error) => {
-                    console.log(error.response.data.message);
+                    alert(error.response.data.message);
                 });
         },
+        
         cleanForm() {
             this.formInfo = {
                 user: {
@@ -199,7 +206,7 @@ const app = createApp({
                     this.getCart();
                 })
                 .catch((error) => {
-                    console.log(error.response.data.message);
+                    alert(error.response.data.message);
                 })
         }
 
@@ -207,10 +214,11 @@ const app = createApp({
     mounted() {
         this.getProducts();
         this.getCart();
-        productDetailModal = new bootstrap.Modal(document.querySelector('#productDetailModal'));
+        // productDetailModal = new bootstrap.Modal(document.querySelector('#productDetailModal'));
     },
 });
-app.component('VForm', VeeValidate.Form);
-app.component('VField', VeeValidate.Field);
-app.component('ErrorMessage', VeeValidate.ErrorMessage);
+// 全域註冊
+// app.component('VForm', VeeValidate.Form);
+// app.component('VField', VeeValidate.Field);
+// app.component('ErrorMessage', VeeValidate.ErrorMessage);
 app.mount('#app');
